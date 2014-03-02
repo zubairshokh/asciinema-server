@@ -1,3 +1,5 @@
+require 'openid/store/filesystem'
+
 Asciinema::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -27,3 +29,5 @@ Asciinema::Application.configure do
   # number of complex assets.
   config.assets.debug = true
 end
+
+::Asciinema::OpenIDStore = OpenID::Store::Filesystem.new(File.join(Rails.root,'tmp'))

@@ -1,3 +1,5 @@
+require 'openid/store/memcache'
+
 Asciinema::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -78,3 +80,5 @@ Asciinema::Application.configure do
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
 end
+
+::Asciinema::OpenIDStore = OpenID::Store::Memcache.new

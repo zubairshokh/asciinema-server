@@ -17,6 +17,7 @@ Asciinema::Application.routes.draw do
   get "/docs/:page" => "docs#show", :as => :docs
 
   get "/auth/browser_id/callback" => "sessions#create"
+  post "/auth/open_id/callback" => "sessions#create" #, as: :open_id_auth
   get "/auth/:provider/callback" => "account_merges#create"
   get "/auth/failure" => "sessions#failure"
 
@@ -35,4 +36,5 @@ Asciinema::Application.routes.draw do
   get '/privacy' => 'pages#show', page: :privacy, as: :privacy
   get '/tos' => 'pages#show', page: :tos, as: :tos
   get '/contributing' => 'pages#show', page: :contributing, as: :contributing
+
 end

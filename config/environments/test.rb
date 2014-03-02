@@ -1,3 +1,5 @@
+require 'openid/store/memory'
+
 Asciinema::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -34,3 +36,5 @@ Asciinema::Application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 end
+
+::Asciinema::OpenIDStore = OpenID::Store::Memory.new

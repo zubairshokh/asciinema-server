@@ -1,8 +1,18 @@
 .container
   .row
-    .col-md-12
+    .col-md-6
       h1 Sign in
 
       p Sign in using your email address by clicking on the button below:
 
       = link_to image_tag('email_sign_in_black.png', :title => "Sign in with your email"), '#', :id => 'persona-button'
+
+    .col-md-6
+      h1 Sign in
+
+      p Sign in with OpenID
+
+      form method="get" action="/auth/open_id"
+        input type="text" name="openid_url"
+        input type="submit"
+      /* = link_to 'Click', open_id_auth_path */
