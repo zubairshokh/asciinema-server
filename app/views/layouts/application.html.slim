@@ -13,5 +13,7 @@ html[lang="en"]
   body
     = render 'layouts/header'
     = render 'shared/flash'
-    .main = content_for?(:content) ? yield(:content) : yield
+    .main
+      = content_for?(:content) ? yield(:content) : yield
+      .push
     = render 'layouts/footer'
