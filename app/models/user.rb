@@ -20,6 +20,7 @@ class User < ActiveRecord::Base
   scope :with_username, -> { where('username IS NOT NULL') }
 
   before_create :generate_auth_token
+  before_create :generate_feed_token
 
   def self.for_email!(email)
     raise InvalidEmailError if email.blank?
@@ -52,6 +53,10 @@ class User < ActiveRecord::Base
   end
 
   def self.generate_auth_token
+    SecureRandom.urlsafe_base64
+  end
+
+  def self.generate_feed_token
     SecureRandom.urlsafe_base64
   end
 
@@ -137,9 +142,18 @@ class User < ActiveRecord::Base
   private
 
   def generate_auth_token
+    generate_token(:auth)
+  end
+
+  def generate_feed_token
+    generate_token(:feed)
+  end
+
+  def generate_token(name)
+    token_name = :"#{name}_token"
     begin
-      self[:auth_token] = self.class.generate_auth_token
-    end while self.class.exists?(auth_token: self[:auth_token])
+      self[token_name] = self.class.public_send(:"generate_#{token_name}")
+    end while self.class.exists?(token_name => self[token_name])
   end
 
   def asciicasts_scope(include_private)
