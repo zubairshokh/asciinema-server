@@ -36,12 +36,12 @@ services:
     ports:
       - "80:80"
       ### Uncomment for HTTPS:
-      # - "443:443"
+      - "443:443"
     volumes:
       - ./docker/nginx/asciinema.conf:/etc/nginx/conf.d/default.conf:ro
       - ./volumes/cache:/cache
       ### Uncomment for HTTPS (make sure to add your cert and private key to ./certs):
-      #  - ./certs:/app/priv/certs
+      - ./certs:/app/priv/certs
     ### See https://hub.docker.com/_/nginx/ for more configuration options for
     ### this image.
 

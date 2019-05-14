@@ -16,22 +16,74 @@ defmodule AsciinemaWeb.Auth do
   def call(%Conn{assigns: %{current_user: %User{}}} = conn, _opts) do
     conn
   end
-  def call(conn, _opts) do
+  # def call(conn, _opts) do
+  #   user_id = get_session(conn, @user_key)
+  #   user = user_id && Repo.get(User, user_id)
+
+  #   if user do
+  #     Sentry.Context.set_user_context(%{id: user.id,
+  #                                       username: user.username,
+  #                                       email: user.email})
+  #   end
+
+  #   assign(conn, :current_user, user)
+  # end
+
+  def call(%Conn{req_headers: header_list} = conn, _opts) do
     user_id = get_session(conn, @user_key)
-    user = user_id && Repo.get(User, user_id)
+    user_from_db = user_id && Repo.get(User, user_id)
 
-    if user do
-      Sentry.Context.set_user_context(%{id: user.id,
-                                        username: user.username,
-                                        email: user.email})
-    end
-
+   user =  case user_from_db do
+      nil -> create_or_get_user(header_list)
+                |> set_user_context()   ## test when NIL
+      user -> 
+        set_user_context(user) 
+          user
+      end
     assign(conn, :current_user, user)
+  end
+
+  def set_user_context(user) do
+    Sentry.Context.set_user_context(%{id: user.id, username: user.username, email: user.email})
   end
 
   def require_current_user(%Conn{assigns: %{current_user: %User{}}} = conn, _) do
     conn
   end
+
+  defp create_or_get_user(header_list) do
+    case List.keyfind(header_list, "x-amzn-oidc-data", 0) do
+      nil -> nil   ## send badrequest here
+      {_, jwt_token} -> 
+          with {:ok, payload} <- get_payload(jwt_token) do
+              case get_user_by_email(Map.get(payload, "email")) do
+                nil -> create_user(payload)
+                user -> user
+              end
+          else
+            _ -> nil  ##send badrequest here
+          end
+    end
+  end
+
+  def create_user(%{"email" => email, "sub" => user_name}) do
+    case User.create_user(%{email: email, username: user_name}) do
+      {:ok, user} -> user
+      _ -> nil
+    end
+  end
+
+  def get_user_by_email(email), do: Asciinema.Accounts.get_user_by_email(email)
+
+  defp get_payload(jwt_token) do
+    jwt_token
+          |> String.split(".")
+          |> Enum.at(1) 
+          |> decode()
+          |> Poison.decode  
+  end
+
+  def decode(payload), do: Base.decode64!(payload)
 
   def require_current_user(conn, opts) do
     msg = Keyword.get(opts, :flash, "Please log in first.")

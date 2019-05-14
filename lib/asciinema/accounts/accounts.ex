@@ -7,6 +7,13 @@ defmodule Asciinema.Accounts do
 
   def get_user!(id), do: Repo.get!(User, id)
 
+  def get_user_by_email(email), do: Repo.get_by(User, email: email)
+
+  def create_user(params) do
+  User.signup_changeset(params) 
+    |> Repo.insert()
+  end
+
   def ensure_asciinema_user do
     case Repo.get_by(User, username: "asciinema") do
       nil ->
