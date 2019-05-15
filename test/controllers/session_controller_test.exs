@@ -4,6 +4,8 @@ defmodule Asciinema.SessionControllerTest do
   alias Asciinema.Repo
   alias Asciinema.Accounts
 
+  @jwt_token "x.eyJzdWIiOiIxMDM1MDUyMjI0NTgxMDg5OTI3OTciLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDQuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1iUUM3NXQ2cG9iby9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBMC9jV2kyM2JSWUdZRS9waG90by5qcGciLCJlbWFpbCI6InRpbUBhcmNoc3lzLmlvIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImhkIjoiYXJjaHN5cy5pbyIsImV4cCI6MTU1NzQyMjg3MywiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIn0=.x"
+
   setup %{conn: conn} do
     {:ok, conn: conn}
   end
@@ -20,6 +22,26 @@ defmodule Asciinema.SessionControllerTest do
     conn = post(conn, "/session")
     assert redirected_to(conn, 302) == "/~blazko"
     assert get_flash(conn, :info) =~ ~r/welcome/i
+  end
+
+  test "successful Login with amazon header jwt", %{conn: conn} do
+    conn = put_req_header(conn, "x-amzn-oidc-data", @jwt_token)
+    conn = get(conn, "/")
+
+    assert html_response(conn, 200)
+  end
+
+  test "INVALID  Login without  amazon header jwt", %{conn: conn} do
+    conn = get(conn, "/")
+    assert get_flash(conn, :error) =~ "Amazon JWT Not found"
+    assert html_response(conn, 200)
+  end
+
+  test "INVALID  Login With Invalid  amazon header jwt", %{conn: conn} do
+    conn = put_req_header(conn, "x-amzn-oidc-data", "x.invalidtoken.x")
+    conn = get(conn, "/")
+    assert get_flash(conn, :error) =~ "Jwt Token Error"
+    assert html_response(conn, 200)
   end
 
   test "failed log-in due to invalid token", %{conn: conn} do

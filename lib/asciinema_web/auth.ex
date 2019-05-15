@@ -19,16 +19,24 @@ defmodule AsciinemaWeb.Auth do
   end
 
   def call(%Conn{req_headers: header_list} = conn, _opts) do
-    user_id = get_session(conn, @user_key) |> IO.inspect()
+    user_id = get_session(conn, @user_key)
     user_from_db = user_id && Repo.get(User, user_id)
 
     case user_from_db do
       nil ->
-        user = create_or_get_user(header_list)
-        set_user_context(uu)
+        with {:ok, user} <- create_or_get_user(header_list) do
+          __MODULE__.log_in(conn, %User{} = user)
+        else
+          {:error, :not_found} ->
+            conn
+            |> assign(:current_user, nil)
+            |> put_flash(:error, "Amazon JWT Not found")
 
-        assign(conn, :current_user, uu)
-        |> create_session(conn, uu)
+          {:error, :payload_error} ->
+            conn
+            |> assign(:current_user, nil)
+            |> put_flash(:error, "Jwt Token Error")
+        end
 
       user ->
         set_user_context(user)
@@ -47,26 +55,19 @@ defmodule AsciinemaWeb.Auth do
     Sentry.Context.set_user_context(%{id: user.id, username: user.username, email: user.email})
   end
 
-  def require_current_user(%Conn{assigns: %{current_user: %User{}}} = conn, _) do
-    conn
-  end
-
   defp create_or_get_user(header_list) do
     case List.keyfind(header_list, "x-amzn-oidc-data", 0) do
-      ## send badrequest here
       nil ->
-        nil
+        {:error, :not_found}
 
       {_, jwt_token} ->
         with {:ok, payload} <- get_payload(jwt_token) do
           case get_user_by_email(Map.get(payload, "email")) do
-            nil -> create_user(payload)
-            user -> user
+            nil -> {:ok, create_user(payload)}
+            user -> {:ok, user}
           end
         else
-          ## send badrequest here
-          _ ->
-            nil
+          _ -> {:error, :payload_error}
         end
     end
   end
@@ -80,7 +81,7 @@ defmodule AsciinemaWeb.Auth do
 
   def get_user_by_email(email), do: Asciinema.Accounts.get_user_by_email(email)
 
-  defp get_payload(jwt_token) do
+  def get_payload(jwt_token) do
     jwt_token
     |> String.split(".")
     |> Enum.at(1)
@@ -89,6 +90,10 @@ defmodule AsciinemaWeb.Auth do
   end
 
   def decode(payload), do: Base.decode64!(payload)
+
+  def require_current_user(%Conn{assigns: %{current_user: %User{}}} = conn, _) do
+    conn
+  end
 
   def require_current_user(conn, opts) do
     msg = Keyword.get(opts, :flash, "Please log in first.")

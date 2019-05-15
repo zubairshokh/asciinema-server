@@ -4,10 +4,6 @@ defmodule AsciinemaWeb.SessionController do
   alias AsciinemaWeb.Auth
   alias Asciinema.Accounts.User
 
-  def jwt_session(conn, _) do
-    conn |> redirect(to: session_path(conn, :new))
-  end
-
   def new(conn, %{"t" => login_token}) do
     conn
     |> put_session(:login_token, login_token)
