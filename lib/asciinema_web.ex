@@ -39,8 +39,9 @@ defmodule AsciinemaWeb do
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/asciinema_web/templates",
-                        namespace: AsciinemaWeb
+      use Phoenix.View,
+        root: "lib/asciinema_web/templates",
+        namespace: AsciinemaWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]

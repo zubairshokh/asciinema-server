@@ -4,27 +4,29 @@ defmodule AsciinemaWeb.Api.AsciicastController do
   alias Asciinema.{Asciicasts, Accounts}
   alias Asciinema.Accounts.User
 
-  plug :accepts, ~w(text json)
-  plug :parse_v0_params
-  plug :authenticate
+  plug(:accepts, ~w(text json))
+  plug(:parse_v0_params)
+  plug(:authenticate)
 
   def create(conn, %{"asciicast" => %Plug.Upload{} = upload}) do
     do_create(conn, upload)
   end
 
-  def create(conn, %{"asciicast" => %{"meta" => %{},
-                                      "stdout" => %Plug.Upload{},
-                                      "stdout_timing" => %Plug.Upload{}} = params}) do
+  def create(conn, %{
+        "asciicast" =>
+          %{"meta" => %{}, "stdout" => %Plug.Upload{}, "stdout_timing" => %Plug.Upload{}} = params
+      }) do
     do_create(conn, params)
   end
 
   defp do_create(conn, params) do
     user = conn.assigns.current_user
-    user_agent = conn |> get_req_header("user-agent") |> List.first
+    user_agent = conn |> get_req_header("user-agent") |> List.first()
 
     case Asciicasts.create_asciicast(user, params, %{user_agent: user_agent}) do
       {:ok, asciicast} ->
         url = asciicast_url(conn, :show, asciicast)
+
         conn
         |> put_status(:created)
         |> put_resp_header("location", url)
@@ -47,7 +49,10 @@ defmodule AsciinemaWeb.Api.AsciicastController do
     end
   end
 
-  defp parse_v0_params(%Plug.Conn{params: %{"asciicast" => %{"meta" => %Plug.Upload{path: meta_path}}}} = conn, _) do
+  defp parse_v0_params(
+         %Plug.Conn{params: %{"asciicast" => %{"meta" => %Plug.Upload{path: meta_path}}}} = conn,
+         _
+       ) do
     with {:ok, json} <- File.read(meta_path),
          {:ok, attrs} <- Poison.decode(json) do
       conn

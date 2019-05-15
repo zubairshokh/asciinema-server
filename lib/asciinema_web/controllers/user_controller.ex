@@ -5,7 +5,7 @@ defmodule AsciinemaWeb.UserController do
   alias Asciinema.Asciicasts
   alias AsciinemaWeb.Auth
 
-  plug :require_current_user when action in [:edit, :update]
+  plug(:require_current_user when action in [:edit, :update])
 
   def new(conn, %{"t" => signup_token}) do
     conn
@@ -57,7 +57,7 @@ defmodule AsciinemaWeb.UserController do
           Accounts.get_user!(id)
       end
 
-    user_is_self = !!(current_user && (current_user.id == user.id))
+    user_is_self = !!(current_user && current_user.id == user.id)
 
     filter =
       case user_is_self do
@@ -110,8 +110,6 @@ defmodule AsciinemaWeb.UserController do
   defp render_edit_form(conn, user, changeset) do
     api_tokens = Accounts.list_api_tokens(user)
 
-    render(conn, "edit.html",
-      changeset: changeset,
-      api_tokens: api_tokens)
+    render(conn, "edit.html", changeset: changeset, api_tokens: api_tokens)
   end
 end

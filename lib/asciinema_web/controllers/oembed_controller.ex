@@ -2,7 +2,7 @@ defmodule AsciinemaWeb.OembedController do
   use AsciinemaWeb, :controller
   alias Asciinema.Asciicasts
 
-  plug :put_layout, nil
+  plug(:put_layout, nil)
 
   def show(conn, params) do
     uri = URI.parse(params["url"] || "")

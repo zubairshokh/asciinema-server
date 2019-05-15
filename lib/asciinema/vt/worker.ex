@@ -32,7 +32,7 @@ defmodule Asciinema.Vt.Worker do
 
     case read_stdout_line(port) do
       {:ok, line} ->
-        result = line |> Poison.decode! |> Map.get("result")
+        result = line |> Poison.decode!() |> Map.get("result")
         {:reply, {:ok, result}, port}
 
       {:error, reason} ->
@@ -59,13 +59,14 @@ defmodule Asciinema.Vt.Worker do
     send_cmd(port, "new", %{width: width, height: height})
     {:noreply, port}
   end
+
   def handle_cast({:feed, data}, port) do
     send_cmd(port, "feed-str", %{str: data})
     {:noreply, port}
   end
 
   defp send_cmd(port, cmd, data \\ %{}) do
-    json = data |> Map.put(:cmd, cmd) |> Poison.encode!
+    json = data |> Map.put(:cmd, cmd) |> Poison.encode!()
     true = Port.command(port, "#{json}\n")
   end
 
