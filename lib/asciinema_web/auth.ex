@@ -27,15 +27,7 @@ defmodule AsciinemaWeb.Auth do
         with {:ok, user} <- create_or_get_user(header_list) do
           __MODULE__.log_in(conn, %User{} = user)
         else
-          {:error, :not_found} ->
-            conn
-            |> assign(:current_user, nil)
-            |> put_flash(:error, "Amazon JWT Not found")
-
-          {:error, :payload_error} ->
-            conn
-            |> assign(:current_user, nil)
-            |> put_flash(:error, "Jwt Token Error")
+          {:error, message} -> error_case(conn, message)
         end
 
       user ->
@@ -44,14 +36,14 @@ defmodule AsciinemaWeb.Auth do
     end
   end
 
-  def create_session(conn, user) do
+  defp create_session(conn, user) do
     token = user |> Accounts.login_token()
 
     conn
     |> put_session(:login_token, token)
   end
 
-  def set_user_context(user) do
+  defp set_user_context(user) do
     Sentry.Context.set_user_context(%{id: user.id, username: user.username, email: user.email})
   end
 
@@ -72,24 +64,35 @@ defmodule AsciinemaWeb.Auth do
     end
   end
 
-  def create_user(%{"email" => email, "sub" => user_name}) do
+  defp create_user(%{"email" => email, "sub" => user_name}) do
     case Accounts.create_user(%{email: email, username: user_name}) do
       {:ok, user} -> user
       _ -> nil
     end
   end
 
-  def get_user_by_email(email), do: Asciinema.Accounts.get_user_by_email(email)
+  defp get_user_by_email(email), do: Asciinema.Accounts.get_user_by_email(email)
 
-  def get_payload(jwt_token) do
+  defp get_payload(jwt_token) do
     jwt_token
     |> String.split(".")
     |> Enum.at(1)
     |> decode()
     |> Poison.decode()
+  rescue
+    error -> {:error, :token_error}
   end
 
-  def decode(payload), do: Base.decode64!(payload)
+  defp decode(payload), do: Base.decode64!(payload)
+
+  defp error_case(conn, :not_found), do: do_error(conn, "Amazon JWT Not found")
+  defp error_case(conn, :payload_error), do: do_error(conn, "Jwt Token Error")
+
+  defp do_error(conn, message) do
+    conn
+    |> assign(:current_user, nil)
+    |> put_flash(:error, message)
+  end
 
   def require_current_user(%Conn{assigns: %{current_user: %User{}}} = conn, _) do
     conn
