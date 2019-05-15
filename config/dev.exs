@@ -2,7 +2,7 @@ use Mix.Config
 
 secret_key_base =
   System.get_env("SECRET_KEY_BASE") ||
-  "60BnXnzGGwwiZj91YA9XYKF9BCiM7lQ/1um8VXcWWLSdUp9OcPZV6YnQv7eFTYSY"
+    "60BnXnzGGwwiZj91YA9XYKF9BCiM7lQ/1um8VXcWWLSdUp9OcPZV6YnQv7eFTYSY"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -16,8 +16,15 @@ config :asciinema, AsciinemaWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   secret_key_base: secret_key_base,
-  watchers: [node: ["node_modules/webpack/bin/webpack.js", "--mode", "development", "--watch-stdin",
-                    cd: Path.expand("../assets", __DIR__)]]
+  watchers: [
+    node: [
+      "node_modules/webpack/bin/webpack.js",
+      "--mode",
+      "development",
+      "--watch-stdin",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ]
 
 config :asciinema, Asciinema.Accounts, secret: secret_key_base
 
@@ -48,11 +55,9 @@ config :asciinema, Asciinema.Repo,
   hostname: "localhost",
   pool_size: 10
 
-config :asciinema, Asciinema.Emails.Mailer,
-  adapter: Bamboo.LocalAdapter
+config :asciinema, Asciinema.Emails.Mailer, adapter: Bamboo.LocalAdapter
 
-config :asciinema, Asciinema.Vt.Worker,
-  vt_script_path: "vt/main.js"
+config :asciinema, Asciinema.Vt.Worker, vt_script_path: "vt/main.js"
 
 if gc_days = System.get_env("ASCIICAST_GC_DAYS") do
   config :asciinema, :asciicast_gc_days, String.to_integer(gc_days)

@@ -13,22 +13,20 @@ config :asciinema,
 config :asciinema, AsciinemaWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: AsciinemaWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Asciinema.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Asciinema.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :phoenix, :template_engines,
-  md: PhoenixMarkdown.Engine
+config :phoenix, :template_engines, md: PhoenixMarkdown.Engine
 
 config :sentry,
   dsn: "https://public:secret@sentry.io/1",
-  environment_name: Mix.env,
+  environment_name: Mix.env(),
   enable_source_code_context: true,
-  root_source_code_path: File.cwd!,
+  root_source_code_path: File.cwd!(),
   included_environments: [:prod],
   in_app_module_whitelist: [Asciinema]
 
@@ -36,6 +34,7 @@ config :asciinema, :file_store, Asciinema.FileStore.Local
 config :asciinema, Asciinema.FileStore.Local, path: "uploads/"
 
 config :asciinema, :png_generator, Asciinema.PngGenerator.Rsvg
+
 config :asciinema, Asciinema.PngGenerator.Rsvg,
   pool_size: 2,
   font_family: "monospace"
@@ -52,8 +51,13 @@ config :exq,
   scheduler_enable: true,
   max_retries: 25,
   shutdown_timeout: 5000,
-  middleware: [Exq.Middleware.Stats, Exq.Middleware.Job, Exq.Middleware.Manager,
-               Exq.Middleware.Logger, Asciinema.Exq.Middleware.Sentry]
+  middleware: [
+    Exq.Middleware.Stats,
+    Exq.Middleware.Job,
+    Exq.Middleware.Manager,
+    Exq.Middleware.Logger,
+    Asciinema.Exq.Middleware.Sentry
+  ]
 
 config :exq_ui, server: false
 
@@ -67,4 +71,4 @@ config :asciinema, Asciinema.Scheduler,
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env}.exs"
+import_config "#{Mix.env()}.exs"

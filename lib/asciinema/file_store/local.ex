@@ -19,6 +19,7 @@ defmodule Asciinema.FileStore.Local do
   def serve_file(conn, path, nil) do
     do_serve_file(conn, path)
   end
+
   def serve_file(conn, path, filename) do
     conn
     |> put_resp_header("content-disposition", "attachment; filename=#{filename}")
@@ -35,9 +36,11 @@ defmodule Asciinema.FileStore.Local do
   def open_file(path) do
     File.open(base_path() <> path, [:binary, :read])
   end
+
   def open_file(path, nil) do
     open_file(path)
   end
+
   def open_file(path, function) do
     File.open(base_path() <> path, [:binary, :read], function)
   end

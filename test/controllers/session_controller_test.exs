@@ -11,25 +11,25 @@ defmodule Asciinema.SessionControllerTest do
   test "successful log-in", %{conn: conn} do
     user = insert(:user, email: "test@example.com", username: "blazko")
 
-    conn = get conn, "/session/new", t: Accounts.login_token(user)
+    conn = get(conn, "/session/new", t: Accounts.login_token(user))
     assert redirected_to(conn, 302) == "/session/new"
 
-    conn = get conn, "/session/new"
+    conn = get(conn, "/session/new")
     assert html_response(conn, 200)
 
-    conn = post conn, "/session"
+    conn = post(conn, "/session")
     assert redirected_to(conn, 302) == "/~blazko"
     assert get_flash(conn, :info) =~ ~r/welcome/i
   end
 
   test "failed log-in due to invalid token", %{conn: conn} do
-    conn = get conn, "/session/new", t: "nope"
+    conn = get(conn, "/session/new", t: "nope")
     assert redirected_to(conn, 302) == "/session/new"
 
-    conn = get conn, "/session/new"
+    conn = get(conn, "/session/new")
     assert html_response(conn, 200)
 
-    conn = post conn, "/session"
+    conn = post(conn, "/session")
     assert redirected_to(conn, 302) == "/login/new"
     assert get_flash(conn, :error) =~ ~r/invalid/i
   end
@@ -39,13 +39,13 @@ defmodule Asciinema.SessionControllerTest do
     token = Accounts.login_token(user)
     Repo.delete!(user)
 
-    conn = get conn, "/session/new", t: token
+    conn = get(conn, "/session/new", t: token)
     assert redirected_to(conn, 302) == "/session/new"
 
-    conn = get conn, "/session/new"
+    conn = get(conn, "/session/new")
     assert html_response(conn, 200)
 
-    conn = post conn, "/session"
+    conn = post(conn, "/session")
     assert redirected_to(conn, 302) == "/login/new"
     assert get_flash(conn, :error) =~ ~r/removed/i
   end
@@ -54,7 +54,7 @@ defmodule Asciinema.SessionControllerTest do
     user = insert(:user)
     conn = log_in(conn, user)
 
-    conn = delete conn, "/session"
+    conn = delete(conn, "/session")
 
     assert redirected_to(conn, 302) == "/"
     assert get_flash(conn, :info) =~ ~r/see you/i

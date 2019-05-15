@@ -4,6 +4,7 @@ defmodule AsciinemaWeb.Auth do
   import AsciinemaWeb.Plug.ReturnTo
   alias Plug.Conn
   alias Asciinema.Accounts.User
+  alias Asciinema.Accounts
   alias Asciinema.Repo
 
   @user_key "warden.user.user.key"
@@ -16,31 +17,30 @@ defmodule AsciinemaWeb.Auth do
   def call(%Conn{assigns: %{current_user: %User{}}} = conn, _opts) do
     conn
   end
-  # def call(conn, _opts) do
-  #   user_id = get_session(conn, @user_key)
-  #   user = user_id && Repo.get(User, user_id)
-
-  #   if user do
-  #     Sentry.Context.set_user_context(%{id: user.id,
-  #                                       username: user.username,
-  #                                       email: user.email})
-  #   end
-
-  #   assign(conn, :current_user, user)
-  # end
 
   def call(%Conn{req_headers: header_list} = conn, _opts) do
-    user_id = get_session(conn, @user_key)
+    user_id = get_session(conn, @user_key) |> IO.inspect()
     user_from_db = user_id && Repo.get(User, user_id)
 
-   user =  case user_from_db do
-      nil -> create_or_get_user(header_list)
-                |> set_user_context()   ## test when NIL
-      user -> 
-        set_user_context(user) 
-          user
-      end
-    assign(conn, :current_user, user)
+    case user_from_db do
+      nil ->
+        user = create_or_get_user(header_list)
+        set_user_context(uu)
+
+        assign(conn, :current_user, uu)
+        |> create_session(conn, uu)
+
+      user ->
+        set_user_context(user)
+        assign(conn, :current_user, user)
+    end
+  end
+
+  def create_session(conn, user) do
+    token = user |> Accounts.login_token()
+
+    conn
+    |> put_session(:login_token, token)
   end
 
   def set_user_context(user) do
@@ -53,21 +53,26 @@ defmodule AsciinemaWeb.Auth do
 
   defp create_or_get_user(header_list) do
     case List.keyfind(header_list, "x-amzn-oidc-data", 0) do
-      nil -> nil   ## send badrequest here
-      {_, jwt_token} -> 
-          with {:ok, payload} <- get_payload(jwt_token) do
-              case get_user_by_email(Map.get(payload, "email")) do
-                nil -> create_user(payload)
-                user -> user
-              end
-          else
-            _ -> nil  ##send badrequest here
+      ## send badrequest here
+      nil ->
+        nil
+
+      {_, jwt_token} ->
+        with {:ok, payload} <- get_payload(jwt_token) do
+          case get_user_by_email(Map.get(payload, "email")) do
+            nil -> create_user(payload)
+            user -> user
           end
+        else
+          ## send badrequest here
+          _ ->
+            nil
+        end
     end
   end
 
   def create_user(%{"email" => email, "sub" => user_name}) do
-    case User.create_user(%{email: email, username: user_name}) do
+    case Accounts.create_user(%{email: email, username: user_name}) do
       {:ok, user} -> user
       _ -> nil
     end
@@ -77,10 +82,10 @@ defmodule AsciinemaWeb.Auth do
 
   defp get_payload(jwt_token) do
     jwt_token
-          |> String.split(".")
-          |> Enum.at(1) 
-          |> decode()
-          |> Poison.decode  
+    |> String.split(".")
+    |> Enum.at(1)
+    |> decode()
+    |> Poison.decode()
   end
 
   def decode(payload), do: Base.decode64!(payload)
@@ -107,7 +112,7 @@ defmodule AsciinemaWeb.Auth do
   end
 
   def log_in(conn, %User{} = user) do
-    user = user |> User.login_changeset |> Repo.update!
+    user = user |> User.login_changeset() |> Repo.update!()
 
     conn
     |> put_session(@user_key, user.id)
@@ -124,7 +129,8 @@ defmodule AsciinemaWeb.Auth do
 
   def get_basic_auth(conn) do
     with ["Basic " <> auth] <- get_req_header(conn, "authorization"),
-         auth = String.replace(auth, ~r/^%/, ""), # workaround for 1.3.0-1.4.0 client bug
+         # workaround for 1.3.0-1.4.0 client bug
+         auth = String.replace(auth, ~r/^%/, ""),
          {:ok, username_password} <- Base.decode64(auth),
          [username, password] <- String.split(username_password, ":") do
       {username, password}
@@ -136,6 +142,7 @@ defmodule AsciinemaWeb.Auth do
   def put_basic_auth(conn, nil, nil) do
     conn
   end
+
   def put_basic_auth(conn, username, password) do
     auth = Base.encode64("#{username}:#{password}")
     put_req_header(conn, "authorization", "Basic " <> auth)

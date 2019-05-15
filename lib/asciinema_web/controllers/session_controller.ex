@@ -4,11 +4,16 @@ defmodule AsciinemaWeb.SessionController do
   alias AsciinemaWeb.Auth
   alias Asciinema.Accounts.User
 
+  def jwt_session(conn, _) do
+    conn |> redirect(to: session_path(conn, :new))
+  end
+
   def new(conn, %{"t" => login_token}) do
     conn
     |> put_session(:login_token, login_token)
     |> redirect(to: session_path(conn, :new))
   end
+
   def new(conn, _params) do
     render(conn, "new.html")
   end
@@ -23,14 +28,17 @@ defmodule AsciinemaWeb.SessionController do
         |> Auth.log_in(user)
         |> put_flash(:info, "Welcome back!")
         |> redirect_to_profile
+
       {:error, :token_invalid} ->
         conn
         |> put_flash(:error, "Invalid login link.")
         |> redirect(to: login_path(conn, :new))
+
       {:error, :token_expired} ->
         conn
         |> put_flash(:error, "This login link has expired, sorry.")
         |> redirect(to: login_path(conn, :new))
+
       {:error, :user_not_found} ->
         conn
         |> put_flash(:error, "This account has been removed.")
@@ -42,6 +50,7 @@ defmodule AsciinemaWeb.SessionController do
     case conn.assigns.current_user do
       %User{username: nil} ->
         redirect(conn, to: "/username/new")
+
       %User{} = user ->
         redirect_back_or(conn, to: profile_path(user))
     end
