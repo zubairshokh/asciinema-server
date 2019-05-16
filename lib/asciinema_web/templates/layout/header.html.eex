@@ -30,7 +30,6 @@
             <ul class="dropdown-menu">
               <li><a href="<%= profile_path(@current_user) %>">Profile</a></li>
               <li><a href="/user/edit">Settings</a></li>
-              <li><%= link "Log out", to: session_path(@conn, :delete), class: "logout", method: :delete %></li>
             </ul>
           </li>
         <% else %>

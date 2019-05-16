@@ -64,11 +64,16 @@ defmodule AsciinemaWeb.Auth do
     end
   end
 
-  defp create_user(%{"email" => email, "sub" => user_name}) do
-    case Accounts.create_user(%{email: email, username: user_name}) do
+  defp create_user(%{"email" => email, "sub" => _sub}) do
+    case Accounts.create_user(%{email: email, username: get_user_name(email)}) do
       {:ok, user} -> user
       _ -> nil
     end
+  end
+
+  defp get_user_name(email) do
+    String.split(email, "@")
+    |> List.first()
   end
 
   defp get_user_by_email(email), do: Asciinema.Accounts.get_user_by_email(email)
