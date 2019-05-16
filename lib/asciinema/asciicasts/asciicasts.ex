@@ -45,7 +45,7 @@ defmodule Asciinema.Asciicasts do
   end
 
   def list_homepage_asciicasts() do
-    year_ago = Timex.now() |> Timex.shift(years: -1)
+    year_ago = Timex.now() |> Timex.shift(years: -2)
 
     Asciicast
     |> filter(:featured)
@@ -557,7 +557,10 @@ defmodule Asciinema.Asciicasts do
 
     changeset =
       Changeset.change(
-        asciicast, version: 2, file: "0.cast", stdout_frames: nil
+        asciicast,
+        version: 2,
+        file: "0.cast",
+        stdout_frames: nil
       )
 
     changeset
@@ -610,10 +613,11 @@ defmodule Asciinema.Asciicasts do
   end
 
   def archive_asciicasts(users_query, dt) do
-    query = from a in Asciicast,
-      join: u in ^users_query,
-      on: a.user_id == u.id,
-      where: a.archivable and is_nil(a.archived_at) and a.created_at < ^dt
+    query =
+      from a in Asciicast,
+        join: u in ^users_query,
+        on: a.user_id == u.id,
+        where: a.archivable and is_nil(a.archived_at) and a.created_at < ^dt
 
     {count, _} = Repo.update_all(query, set: [archived_at: Timex.now()])
     count

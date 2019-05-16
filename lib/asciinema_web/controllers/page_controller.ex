@@ -1,7 +1,7 @@
 defmodule AsciinemaWeb.PageController do
   use AsciinemaWeb, :controller
 
-  plug :put_layout, :app2
+  plug(:put_layout, :app2)
 
   def about(conn, _params) do
     conn
@@ -24,7 +24,8 @@ defmodule AsciinemaWeb.PageController do
   def contact(conn, _params) do
     conn
     |> assign(:page_title, "Contact")
-    |> render("contact.html") # TODO rename to Community
+    # TODO rename to Community
+    |> render("contact.html")
   end
 
   def contributing(conn, _params) do

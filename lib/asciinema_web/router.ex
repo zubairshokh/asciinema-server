@@ -7,19 +7,19 @@ defmodule AsciinemaWeb.Router do
   import AsciinemaWeb.Auth, only: [require_current_user: 2, require_admin: 2]
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug AsciinemaWeb.Auth
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_flash)
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(AsciinemaWeb.Auth)
   end
 
   pipeline :asciicast do
-    plug AsciinemaWeb.TrailingFormat
-    plug :accepts, ["html", "js", "json", "cast", "svg", "png", "gif"]
-    plug :format_specific_plugs
-    plug :put_secure_browser_headers
+    plug(AsciinemaWeb.TrailingFormat)
+    plug(:accepts, ["html", "js", "json", "cast", "svg", "png", "gif"])
+    plug(:format_specific_plugs)
+    plug(:put_secure_browser_headers)
   end
 
   defp format_specific_plugs(conn, []) do
@@ -37,79 +37,80 @@ defmodule AsciinemaWeb.Router do
   defp format_specific_plugs(conn, _other), do: conn
 
   pipeline :oembed do
-    plug :accepts, ["json", "xml"]
-    plug :put_secure_browser_headers
+    plug(:accepts, ["json", "xml"])
+    plug(:put_secure_browser_headers)
   end
 
   scope "/", AsciinemaWeb do
-    pipe_through :asciicast
+    pipe_through(:asciicast)
 
-    resources "/a", AsciicastController, only: [:show, :edit, :update, :delete]
+    resources("/a", AsciicastController, only: [:show, :edit, :update, :delete])
   end
 
   scope "/", AsciinemaWeb do
-    pipe_through :oembed
+    pipe_through(:oembed)
 
-    get "/oembed", OembedController, :show
+    get("/oembed", OembedController, :show)
   end
 
   scope "/", AsciinemaWeb do
-    pipe_through :browser # Use the default browser stack
+    # Use the default browser stack
+    pipe_through(:browser)
 
-    get "/", HomeController, :show
+    get("/", HomeController, :show)
 
-    get "/explore", AsciicastController, :index
-    get "/explore/:category", AsciicastController, :category
+    get("/explore", AsciicastController, :index)
+    get("/explore/:category", AsciicastController, :category)
 
-    get "/a/:id/iframe", AsciicastController, :iframe
-    get "/a/:id/embed", AsciicastController, :embed
-    get "/a/:id/example", AsciicastController, :example
+    get("/a/:id/iframe", AsciicastController, :iframe)
+    get("/a/:id/embed", AsciicastController, :embed)
+    get("/a/:id/example", AsciicastController, :example)
 
-    get "/docs", DocController, :index
-    get "/docs/:topic", DocController, :show
+    get("/docs", DocController, :index)
+    get("/docs/:topic", DocController, :show)
 
-    resources "/login", LoginController, only: [:new, :create], singleton: true
-    get "/login/sent", LoginController, :sent, as: :login
+    resources("/login", LoginController, only: [:new, :create], singleton: true)
+    get("/login/sent", LoginController, :sent, as: :login)
 
-    resources "/user", UserController, as: :user, only: [:edit, :update], singleton: true
-    resources "/users", UserController, as: :users, only: [:new, :create]
-    get "/u/:id", UserController, :show
-    get "/~:username", UserController, :show
+    resources("/user", UserController, as: :user, only: [:edit, :update], singleton: true)
+    resources("/users", UserController, as: :users, only: [:new, :create])
+    get("/u/:id", UserController, :show)
+    get("/~:username", UserController, :show)
 
-    resources "/username", UsernameController, only: [:new, :create], singleton: true
-    get "/username/skip", UsernameController, :skip, as: :username
+    resources("/username", UsernameController, only: [:new, :create], singleton: true)
+    get("/username/skip", UsernameController, :skip, as: :username)
 
-    resources "/session", SessionController, only: [:new, :create, :delete], singleton: true
+    resources("/session", SessionController, only: [:new, :create, :delete], singleton: true)
 
-    get "/connect/:api_token", ApiTokenController, :show, as: :connect
+    get("/connect/:api_token", ApiTokenController, :show, as: :connect)
 
-    resources "/api_tokens", ApiTokenController, only: [:delete]
+    resources("/api_tokens", ApiTokenController, only: [:delete])
 
-    get "/about", PageController, :about
-    get "/privacy", PageController, :privacy
-    get "/tos", PageController, :tos
-    get "/contact", PageController, :contact
-    get "/contributing", PageController, :contributing
+    get("/about", PageController, :about)
+    get("/privacy", PageController, :privacy)
+    get("/tos", PageController, :tos)
+    get("/contact", PageController, :contact)
+    get("/contributing", PageController, :contributing)
   end
 
   scope "/api", AsciinemaWeb.Api, as: :api do
-    post "/asciicasts", AsciicastController, :create
+    post("/asciicasts", AsciicastController, :create)
   end
 
   pipeline :exq do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :put_secure_browser_headers
-    plug AsciinemaWeb.Auth
-    plug :require_current_user
-    plug :require_admin
-    plug ExqUi.RouterPlug, namespace: "admin/exq"
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_flash)
+    plug(:put_secure_browser_headers)
+    plug(AsciinemaWeb.Auth)
+    plug(:require_current_user)
+    plug(:require_admin)
+    plug(ExqUi.RouterPlug, namespace: "admin/exq")
   end
 
   scope "/admin/exq", ExqUi do
-    pipe_through :exq
-    forward "/", RouterPlug.Router, :index
+    pipe_through(:exq)
+    forward("/", RouterPlug.Router, :index)
   end
 end
 

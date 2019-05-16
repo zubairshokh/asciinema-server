@@ -13,9 +13,7 @@ use Mix.Config
 # which you typically run after static files are built.
 config :asciinema, AsciinemaWeb.Endpoint,
   http: [port: {:system, "PORT"}],
-  url: [scheme: "https",
-        host: "asciinema.org",
-        port: 443],
+  url: [scheme: "https", host: "asciinema.org", port: 443],
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,
   root: "."

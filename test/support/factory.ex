@@ -5,9 +5,11 @@ defmodule Asciinema.Factory do
   alias Asciinema.FileStore
 
   def user_factory do
-    %User{username: sequence(:username, &"username-#{&1}"),
-          email: sequence(:email, &"email-#{&1}@example.com"),
-          auth_token: Crypto.random_token(20)}
+    %User{
+      username: sequence(:username, &"username-#{&1}"),
+      email: sequence(:email, &"email-#{&1}@example.com"),
+      auth_token: Crypto.random_token(20)
+    }
   end
 
   def asciicast_factory do

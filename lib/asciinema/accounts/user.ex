@@ -29,7 +29,7 @@ defmodule Asciinema.Accounts.User do
     |> cast(params, [:email, :name, :username, :theme_name, :asciicasts_private_by_default])
     |> validate_format(:email, @valid_email_re)
     |> validate_format(:username, @valid_username_re)
-    |> validate_length(:username, min: 2, max: 16)
+    |> validate_length(:username, min: 2, max: 32)
     |> validate_inclusion(:theme_name, @valid_theme_names)
     |> unique_constraints
   end

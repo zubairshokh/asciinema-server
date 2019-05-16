@@ -46,6 +46,7 @@ defmodule Asciinema.Asciicasts.Asciicast do
     def to_param(%Asciicast{private: true, secret_token: secret_token}) do
       secret_token
     end
+
     def to_param(%Asciicast{id: id}) do
       Integer.to_string(id)
     end
@@ -60,7 +61,23 @@ defmodule Asciinema.Asciicasts.Asciicast do
   def create_changeset(struct, attrs) do
     struct
     |> changeset(attrs)
-    |> cast(attrs, [:version, :file, :duration, :terminal_columns, :terminal_lines, :terminal_type, :command, :shell, :uname, :user_agent, :recorded_at, :theme_fg, :theme_bg, :theme_palette, :idle_time_limit])
+    |> cast(attrs, [
+      :version,
+      :file,
+      :duration,
+      :terminal_columns,
+      :terminal_lines,
+      :terminal_type,
+      :command,
+      :shell,
+      :uname,
+      :user_agent,
+      :recorded_at,
+      :theme_fg,
+      :theme_bg,
+      :theme_palette,
+      :idle_time_limit
+    ])
     |> validate_required([:user_id, :version, :duration, :terminal_columns, :terminal_lines])
     |> generate_secret_token
   end
